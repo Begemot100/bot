@@ -93,13 +93,45 @@ async def add_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def send_reminder(context: ContextTypes.DEFAULT_TYPE, chat_id: int, task_text: str):
     await context.bot.send_message(chat_id=chat_id, text=f"Напоминание: {task_text}")
 
+# Programming handler
+async def programming_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text("Категория: Программирование. Задавайте вопросы, и я постараюсь помочь!")
+
+# Database handler
+async def database_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text("Категория: База данных. Чем могу помочь?")
+
+# Chat handler
+async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text("Категория: Болталка. О чём хотите поговорить?")
+
+# Callback query handler
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    category = query.data
+
+    if category == "programming":
+        await programming_handler(update, context)
+    elif category == "database":
+        await database_handler(update, context)
+    elif category == "diary":
+        await diary_menu(update, context)
+    elif category == "chat":
+        await chat_handler(update, context)
+
 # Main function
 async def main():
     scheduler.start()
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", animated_start_menu))
-    app.add_handler(CallbackQueryHandler(diary_menu))
-    app.add_handler(MessageHandler(filters.TEXT, add_task))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_task))
     await app.run_polling()
 
 if __name__ == "__main__":
